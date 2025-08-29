@@ -248,7 +248,8 @@ def pattern_to_frame(pattern: list[tuple[int, int]]) -> list[int]:
         ret[col] |= (1 << led[0])
         ret[col] &= ~(1 << led[1]) # high-side is inverted
 
-        print(f'Pattern: {p}, Manipulation: {led}, Frame: {ret[p[1] - 1]:032b}')
+        # debug:
+        #print(f'Pattern: {p}, Manipulation: {led}, Frame: {ret[p[1] - 1]:032b}')
 
     return ret
 
