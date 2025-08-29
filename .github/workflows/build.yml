@@ -16,13 +16,20 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
+      - name: Set VERSION for build
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "VERSION=v0.0.0" >> $GITHUB_ENV
+          else
+            echo "VERSION=${{ github.ref_name }}" >> $GITHUB_ENV
+          fi
       - name: Install build dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y make zip
       - name: Build artifacts
         run: |
-          make VERSION=${{ github.ref_name }}
+          make VERSION=${{ env.VERSION }}
       - name: Clean up build artifacts
         run: |
           make clean
