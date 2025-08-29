@@ -1,13 +1,14 @@
 NAME=ledtrix
-VERSION=$(shell echo $(VERSION) | sed 's/^v//')
+VERSION?=unset
+VERSION_STRIPPED=$(shell echo $(VERSION) | sed 's/^v//')
 
 build:
-	@if [ -z "${VERSION}" ]; then \
-		echo "ERROR: VERSION is not set and could not be determined from library.properties!"; \
+	@if [ "$(VERSION)" = "unset" ]; then \
+		echo "ERROR: VERSION must be provided!"; \
 		exit 1; \
 	fi
-	@if ! echo "${VERSION}" | grep -Eq "^[0-9]+\.[0-9]+\.[0-9]+$$"; then \
-		echo "ERROR: VERSION must be in major.minor.patch format (e.g., 1.2.3). Was '${VERSION}'"; \
+	@if ! echo "$(VERSION_STRIPPED)" | grep -Eq "^[0-9]+\.[0-9]+\.[0-9]+$$"; then \
+		echo "ERROR: VERSION must be in major.minor.patch format (e.g., 1.2.3). Was '$(VERSION_STRIPPED)'"; \
 		exit 1; \
 	fi
 	sed -i "s/^version=.*/version=${VERSION}/" library.properties
