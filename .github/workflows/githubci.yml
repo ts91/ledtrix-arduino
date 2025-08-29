@@ -1,0 +1,67 @@
+name: Build Ledtrix.zip
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make zip
+      - name: Get version from git tag
+        id: get_version
+        run: echo "VERSION=$(git describe --tags --abbrev=0)" >> $GITHUB_ENV
+      - name: Update library.properties version
+        run: |
+          sed -i "s/^version=.*/version=${{ env.VERSION }}/" library.properties
+      - name: Build ledtrix artifacts
+        run: |
+          if [ -f Makefile ]; then
+            make VERSION=${{ env.VERSION }}
+          fi
+      - name: Upload ledtrix artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ledtrix-artifacts
+          path: |
+            ledtrix-${{ env.VERSION }}.zip
+            ledtrix-${{ env.VERSION }}.tar.gz
+          if-no-files-found: error
+
+  release:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y make zip
+      - name: Build ledtrix.zip
+        run: |
+          if [ -f Makefile ]; then
+            make
+          fi
+          zip -r ledtrix.zip ledtrix
+      - name: Upload ledtrix.zip to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ledtrix.zip
