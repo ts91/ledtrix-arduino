@@ -18,4 +18,4 @@ build:
 	tar -czf ${NAME}-${VERSION}.tar.gz frame.c frame.h ledtrix.c ledtrix.h keywords.txt library.properties LICENSE README.md examples/; \
 
 clean:
-	rm -rf ${NAME}-${VERSION}.zip ${NAME}-${VERSION}.tar.gz
+	rm -rf ${NAME}-*.zip ${NAME}-*.tar.gz
