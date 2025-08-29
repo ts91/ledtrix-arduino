@@ -1,11 +1,14 @@
-name: Build Ledtrix.zip
+name: Build ledtrix
 
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*.*.*'
   pull_request:
     branches: [ main ]
+
+  release:
+    types: [published]
 
 jobs:
   build:
@@ -21,20 +24,53 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y make zip
-      - name: Set VERSION from tag
-        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
       - name: Build artifacts
         run: |
-          make VERSION=${{ env.VERSION }}
-      - name: Upload artifacts
+          make VERSION=${{ github.ref_name }}
+      - name: Upload ledtrix.zip artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ledtrix artifacts
-          path: |
-            ledtrix-${{ env.VERSION }}.zip
-            ledtrix-${{ env.VERSION }}.tar.gz
+          name: ledtrix-${{ github.ref_name }}.zip
+          path: ledtrix-${{ github.ref_name }}.zip
+          if-no-files-found: error
+      - name: Upload ledtrix.tar.gz artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ledtrix-${{ github.ref_name }}.tar.gz
+          path: ledtrix-${{ github.ref_name }}.tar.gz
           if-no-files-found: error
       - name: Clean up build artifacts
         run: |
           make clean
+
+  release:
+      runs-on: ubuntu-latest
+      needs: build
+      steps:
+        - name: Download ledtrix.zip artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: ledtrix-${{ github.event.release.tag_name }}.zip
+        - name: Download ledtrix.tar.gz artifact
+          uses: actions/download-artifact@v4
+          with:
+            name: ledtrix-${{ github.event.release.tag_name }}.tar.gz
+        - name: Upload ledtrix.zip to release
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ github.event.release.upload_url }}
+            asset_path: ledtrix-${{ github.event.release.tag_name }}.zip
+            asset_name: ledtrix-${{ github.event.release.tag_name }}.zip
+            asset_content_type: application/zip
+        - name: Upload ledtrix.tar.gz to release
+          uses: actions/upload-release-asset@v1
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          with:
+            upload_url: ${{ github.event.release.upload_url }}
+            asset_path: ledtrix-${{ github.event.release.tag_name }}.tar.gz
+            asset_name: ledtrix-${{ github.event.release.tag_name }}.tar.gz
+            asset_content_type: application/gzip
 

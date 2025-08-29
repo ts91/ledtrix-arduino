@@ -1,5 +1,5 @@
 NAME=ledtrix
-VERSION?=$(shell grep '^version=' library.properties | cut -d'=' -f2)
+VERSION=$(shell echo $(VERSION) | sed 's/^v//')
 
 build:
 	@if [ -z "${VERSION}" ]; then \
